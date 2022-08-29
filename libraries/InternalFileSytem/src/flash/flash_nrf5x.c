@@ -24,8 +24,10 @@
 
 #include "flash_nrf5x.h"
 #include "flash_cache.h"
+#ifdef SOFTDEVICE_PRESENT
 #include "nrf_sdm.h"
 #include "nrf_soc.h"
+#endif
 #include "delay.h"
 #include "rtos.h"
 
