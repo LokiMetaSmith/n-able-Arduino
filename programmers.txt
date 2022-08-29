@@ -1,0 +1,45 @@
+jlink.name=J-Link
+jlink.communication=USB
+jlink.protocol=
+jlink.program.protocol=
+jlink.program.tool=jlink
+jlink.bootloader.tool=jlink
+jlink.program.setup_command=;
+
+stlink.name=ST-Link V2
+stlink.communication=USB
+stlink.protocol=stlink
+stlink.program.protocol=stlink
+stlink.program.tool=openocd
+stlink.bootloader.tool=openocd
+stlink.program.setup_command=transport select hla_swd; set WORKAREASIZE 0x4000;
+
+cmsisdap.name=CMSIS-DAP
+cmsisdap.communication=USB
+cmsisdap.protocol=cmsis-dap
+cmsisdap.program.protocol=cmsis-dap
+cmsisdap.program.tool=openocd
+cmsisdap.bootloader.tool=openocd
+cmsisdap.program.setup_command=transport select hla_swd;
+
+blackmagicprobe.name=Black Magic Probe (GDB)
+blackmagicprobe.communication=USB
+blackmagicprobe.protocol=
+blackmagicprobe.program.protocol=
+blackmagicprobe.program.tool=blackmagicprobe
+blackmagicprobe.bootloader.tool=blackmagicprobe
+blackmagicprobe.program.extra_params=;
+
+adafruit-nrfutil.name=adafruit-nrfutil
+adafruit-nrfutil.communication=USB
+adafruit-nrfutil.protocol=
+adafruit-nrfutil.program.protocol=
+adafruit-nrfutil.program.tool=adafruit-nrfutil
+adafruit-nrfutil.program.extra_params=;
+
+nrfutil.name=nrfutil
+nrfutil.communication=USB
+nrfutil.protocol=
+nrfutil.program.protocol=
+nrfutil.program.tool=nrfutil
+nrfutil.program.extra_params=;
