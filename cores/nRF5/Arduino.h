@@ -49,9 +49,6 @@ void resumeLoop(void);
 } // extern "C"
 #endif
 
-// RTOS
-#include "rtos.h"
-
 // The following headers are for C++ only compilation
 #ifdef __cplusplus
   #include "WCharacter.h"
@@ -168,5 +165,10 @@ void resumeLoop(void);
 
 // Interrupts
 #define digitalPinToInterrupt(P)   ( P )
+// RTOS
+#ifdef __cplusplus
+#include "Uart.h"
+#include "rtos.h"
+#endif // __cplusplus
 
 #endif // Arduino_h
