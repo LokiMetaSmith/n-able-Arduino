@@ -1080,6 +1080,93 @@ cluenrf52840.menu.bootloader.none.upload.maximum_size=1032192
 # nRF52833 variants
 ###################
 
+# ----------------------------------
+# Opossum Pouch 33
+# ----------------------------------
+
+op2.name=Opossum Pouch nRF52833 (op2)
+# VID/PID for Bootloader, Arduino & CircuitPython
+#op2.vid=0x239A
+#op2.pid=0x8029
+op2.vid.0=0x1366
+op2.pid.0=0x1015
+
+
+# Upload (can also be jlink)
+op2.bootloader.tool=openocd
+op2.upload.tool=openocd
+op2.upload.target=nrf52
+op2.upload.jlink_device=nRF52833_xxAA
+#op2.upload.protocol=nrfutil
+#op2.upload.use_1200bps_touch=true
+#op2.upload.wait_for_upload_port=true
+op2.upload.maximum_size=507904
+#op2.upload.maximum_data_size=237568
+
+
+# Build
+op2.build.mcu=cortex-m4
+op2.build.f_cpu=64000000
+op2.build.board=op2
+op2.build.core=nRF5
+op2.build.variant=op2
+op2.build.variant_system_lib=
+op2.build.float_flags=-mfloat-abi=hard -mfpu=fpv4-sp-d16
+op2.build.ldscript=nrf52833_xxaa.ld
+#op2.build.vid=0x1366
+#op2.build.pid=0x1015
+op2.build.lfclk_flags=-DUSE_LFXO
+op2.build.extra_flags=-DNRF52_SERIES -DNRF52833_XXAA {bootloader.flags} 
+-DCONFIG_NIMBLE_CPP_LOG_LEVEL={build.cpp_debug} {build.nimble_flags}
+op2.build.usb_manufacturer="Nordic"
+op2.build.usb_product="nRF52833"
+op2.build.extra_flags=-DNRF52833_XXAA {build.flags.usb}
+
+op2.menu.role.all=All
+op2.menu.role.all.build.nimble_flags=
+op2.menu.role.periph=Peripheral
+op2.menu.role.periph.build.nimble_flags=-DCONFIG_BT_NIMBLE_ROLE_CENTRAL_DISABLED -DCONFIG_BT_NIMBLE_ROLE_OBSERVER_DISABLED
+op2.menu.role.adv=Advertiser
+op2.menu.role.adv.build.nimble_flags=-DCONFIG_BT_NIMBLE_ROLE_CENTRAL_DISABLED -DCONFIG_BT_NIMBLE_ROLE_OBSERVER_DISABLED -DCONFIG_BT_NIMBLE_ROLE_PERIPHERAL_DISABLED
+op2.menu.role.scan=Scanner
+op2.menu.role.scan.build.nimble_flags=-DCONFIG_BT_NIMBLE_ROLE_CENTRAL_DISABLED -DCONFIG_BT_NIMBLE_ROLE_PERIPHERAL_DISABLED -DCONFIG_BT_NIMBLE_ROLE_CENTRAL_DISABLED
+op2.menu.role.central=Client
+op2.menu.role.central.build.nimble_flags=-DCONFIG_BT_NIMBLE_ROLE_PERIPHERAL_DISABLED -DCONFIG_BT_NIMBLE_ROLE_BROADCASTER_DISABLED
+
+op2.menu.cppDbgLvl.none=None
+op2.menu.cppDbgLvl.none.build.cpp_debug=0
+op2.menu.cppDbgLvl.error=Error
+op2.menu.cppDbgLvl.error.build.cpp_debug=1
+op2.menu.cppDbgLvl.warn=Warn
+op2.menu.cppDbgLvl.warn.build.cpp_debug=2
+op2.menu.cppDbgLvl.info=Info
+op2.menu.cppDbgLvl.info.build.cpp_debug=3
+op2.menu.cppDbgLvl.debug=Debug
+op2.menu.cppDbgLvl.debug.build.cpp_debug=4
+
+op2.menu.bootloader.none=No bootloader
+op2.menu.bootloader.none.bootloader.flags=
+op2.menu.bootloader.none.build.bootloader.file=tools/none_bootloader.hex
+
+# Debug Menu
+#op2.menu.debug.l0=Level 0 (Release)
+#op2.menu.debug.l0.build.debug_flags=-DCFG_DEBUG=0
+#op2.menu.debug.l1=Level 1 (Error Message)
+#op2.menu.debug.l1.build.debug_flags=-DCFG_DEBUG=1
+#op2.menu.debug.l2=Level 2 (Full Debug)
+#op2.menu.debug.l2.build.debug_flags=-DCFG_DEBUG=2
+#op2.menu.debug.l3=Level 3 (Segger SystemView)
+#op2.menu.debug.l3.build.debug_flags=-DCFG_DEBUG=3
+#op2.menu.debug.l3.build.sysview_flags=-DCFG_SYSVIEW=1
+
+# Debug Output Menu
+op2.menu.debug_output.serial=Serial
+op2.menu.debug_output.serial.build.logger_flags=-DCFG_LOGGER=0
+op2.menu.debug_output.serial1=Serial1
+op2.menu.debug_output.serial1.build.logger_flags=-DCFG_LOGGER=1 -DCFG_TUSB_DEBUG=CFG_DEBUG
+op2.menu.debug_output.rtt=Segger RTT
+op2.menu.debug_output.rtt.build.logger_flags=-DCFG_LOGGER=2 -DCFG_TUSB_DEBUG=CFG_DEBUG -DSEGGER_RTT_MODE_DEFAULT=SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL
+
 Generic_nRF52833.name=Generic nRF52833
 
 Generic_nRF52833.upload.tool=openocd

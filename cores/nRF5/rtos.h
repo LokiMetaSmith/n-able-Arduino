@@ -59,7 +59,8 @@ enum
 
 class nableRtos {
 public:
-    nableRtos() {}
+typedef void (*taskfunc_t)(void);
+    nableRtos(void) {}
     ~nableRtos() {}
     uint32_t getIsrStackHwm();
     uint32_t getMainTaskHwm();

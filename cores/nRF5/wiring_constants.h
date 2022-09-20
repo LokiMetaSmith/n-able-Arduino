@@ -30,6 +30,18 @@ extern "C"{
 #define OUTPUT          (0x1)
 #define INPUT_PULLUP    (0x2)
 #define INPUT_PULLDOWN  (0x3)
+#define INPUT_PULLUP_SENSE    (0x4)
+#define INPUT_PULLDOWN_SENSE  (0x5)
+#define INPUT_SENSE_HIGH      (0x6)
+#define INPUT_SENSE_LOW       (0x7)
+#define OUTPUT_S0S1           OUTPUT
+#define OUTPUT_H0S1           (0x8)
+#define OUTPUT_S0H1           (0x9)
+#define OUTPUT_H0H1           (0xA)
+#define OUTPUT_D0S1           (0xB)
+#define OUTPUT_D0H1           (0xC)
+#define OUTPUT_S0D1           (0xD)
+#define OUTPUT_H0D1           (0xE)
 
 #define PI 3.1415926535897932384626433832795
 #define HALF_PI 1.5707963267948966192313216916398
@@ -55,6 +67,13 @@ enum BitOrder {
 //
 //#define DEFAULT 1
 //#define EXTERNAL 0
+
+typedef uint32_t err_t;
+
+enum
+{
+  ERROR_NONE = 0
+};
 
 #ifdef __cplusplus
 } // extern "C"

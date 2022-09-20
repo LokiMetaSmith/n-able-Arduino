@@ -17,8 +17,8 @@
 */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "Arduino.h"
@@ -187,13 +187,19 @@ size_t Print::println(const Printable& x)
   return n;
 }
 
-int Print::printf(const char* format, ...)
+size_t Print::printf(const char * format, ...)
 {
-  va_list va;
-  va_start(va, format);
-  int ret = vprintf(format, va);
-  va_end(va);
-  return ret;
+  char buf[256];
+  int len;
+
+  va_list ap;
+  va_start(ap, format);
+
+  len = vsnprintf(buf, 256, format, ap);
+  this->write(buf, len);
+
+  va_end(ap);
+  return len;
 }
 
 // Private Methods /////////////////////////////////////////////////////////////
@@ -220,45 +226,41 @@ size_t Print::printNumber(unsigned long n, uint8_t base)
 
 size_t Print::printFloat(double number, uint8_t digits)
 {
-  size_t n = 0;
+  char buf[256];
+  size_t s=0;
 
-  if (isnan(number)) return print("nan");
-  if (isinf(number)) return print("inf");
-  if (number > 4294967040.0) return print ("ovf");  // constant determined empirically
-  if (number <-4294967040.0) return print ("ovf");  // constant determined empirically
+  s = snprintf(buf, 256, "%.*f", digits, number);
+  s = write(buf, s);
+  return s;
+  }
 
-  // Handle negative numbers
-  if (number < 0.0)
+size_t Print::printBuffer(uint8_t const buffer[], int len, char delim, int byteline)
+{
+  if (buffer == NULL || len == 0) return 0;
+
+  for(int i=0; i<len; i++)
   {
-     n += print('-');
-     number = -number;
+    if ( i != 0 ) print(delim);
+    if ( byteline && (i%byteline == 0) ) println();
+
+    this->printf("%02X", buffer[i]);
   }
 
-  // Round correctly so that print(1.999, 2) prints as "2.00"
-  double rounding = 0.5;
-  for (uint8_t i=0; i<digits; ++i)
-    rounding /= 10.0;
-
-  number += rounding;
-
-  // Extract the integer part of the number and print it
-  unsigned long int_part = (unsigned long)number;
-  double remainder = number - (double)int_part;
-  n += print(int_part);
-
-  // Print the decimal point, but only if there are digits beyond
-  if (digits > 0) {
-    n += print(".");
+  return (len*3 - 1);
   }
 
-  // Extract digits from the remainder one at a time
-  while (digits-- > 0)
+size_t Print::printBufferReverse(uint8_t const buffer[], int len, char delim, int byteline)
+{
+  if (buffer == NULL || len == 0) return 0;
+
+  for(int i=0; i<len; i++)
   {
-    remainder *= 10.0;
-    int toPrint = int(remainder);
-    n += print(toPrint);
-    remainder -= toPrint;
+    if (i != 0) print(delim);
+    if ( byteline && (i%byteline == 0) ) println();
+
+    this->printf("%02X", buffer[len-1-i]);
   }
 
-  return n;
+  return (len*3 - 1);
 }
+

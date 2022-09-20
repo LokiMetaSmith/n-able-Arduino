@@ -37,10 +37,10 @@ extern "C"
 #endif // __cplusplus
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (48)
-#define NUM_DIGITAL_PINS     (48)
-#define NUM_ANALOG_INPUTS    (6)
-#define NUM_ANALOG_OUTPUTS   (0)
+#define PINS_COUNT           (48u)
+#define NUM_DIGITAL_PINS     (48u)
+#define NUM_ANALOG_INPUTS    (6u)
+#define NUM_ANALOG_OUTPUTS   (0u)
 
 // LEDs
 #define PIN_LED1             (10)

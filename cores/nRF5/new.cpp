@@ -16,20 +16,64 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "freertos/FreeRTOS.h"
+#include <stdlib.h>
+#include "rtos.h"
+
+#include <errno.h>
+#include <sys/stat.h>
+#include <malloc.h>
 
 void *operator new(size_t size) {
-  return pvPortMalloc(size);
+  return rtos_malloc(size);
 }
 
 void *operator new[](size_t size) {
-  return pvPortMalloc(size);
+  return rtos_malloc(size);
 }
 
 void operator delete(void * ptr) {
-  vPortFree(ptr);
+  rtos_free(ptr);
 }
 
 void operator delete[](void * ptr) {
-  vPortFree(ptr);
+  rtos_free(ptr);
+}
+
+void operator delete(void * ptr, unsigned int) {
+  rtos_free(ptr);
+}
+
+void operator delete[](void * ptr, unsigned int) {
+  rtos_free(ptr);
+}
+
+
+extern "C"
+{
+
+// defined in linker script
+extern unsigned char __HeapBase[];
+extern unsigned char __HeapLimit[];
+
+static unsigned char *sbrk_heap_top = __HeapBase;
+
+__attribute__((used))
+caddr_t _sbrk( int incr )
+{
+  unsigned char *prev_heap;
+
+  if ( sbrk_heap_top + incr > __HeapLimit )
+  {
+    /* Out of dynamic memory heap space */
+    errno = ENOMEM;
+    return (caddr_t) -1;
+  }
+
+  prev_heap = sbrk_heap_top;
+
+  sbrk_heap_top += incr;
+
+  return (caddr_t) prev_heap;
+}
+
 }

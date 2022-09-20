@@ -47,10 +47,18 @@ void loopTask(void *pvParameters)
 {
     setup();
 
-    for(;;) {
+#if CFG_DEBUG
+  dbgPrintVersion();
+  Bluefruit_printInfo();
+#endif
+
+  while (1)
+  {
         loop();
-        yield();
-        if (serialEventRun) serialEventRun();
+    yield(); // yield to run other task
+
+    // Serial events
+    if (serialEvent && serialEventRun) serialEventRun();
     }
 }
 

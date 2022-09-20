@@ -29,13 +29,10 @@ void serialEventRun(void)
 #if defined(PIN_SERIAL1_RX) && defined(PIN_SERIAL1_TX)
   if (serialEvent1 && Serial1.available() ) serialEvent1();
 #endif
-<<<<<<< HEAD
 
 #if defined(PIN_SERIAL2_RX) && defined(PIN_SERIAL2_TX)
   if (serialEvent2 && Serial2.available() ) serialEvent2();
 #endif
-=======
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
 }
 
 Uart::Uart(NRF_UART_Type *_nrfUart, IRQn_Type _IRQn, uint8_t _pinRX, uint8_t _pinTX)
@@ -45,12 +42,9 @@ Uart::Uart(NRF_UART_Type *_nrfUart, IRQn_Type _IRQn, uint8_t _pinRX, uint8_t _pi
   uc_pinRX = g_ADigitalPinMap[_pinRX];
   uc_pinTX = g_ADigitalPinMap[_pinTX];
   uc_hwFlow = 0;
-<<<<<<< HEAD
 
   _end_tx_sem = NULL;
   _begun = false;
-=======
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
 }
 
 Uart::Uart(NRF_UART_Type *_nrfUart, IRQn_Type _IRQn, uint8_t _pinRX, uint8_t _pinTX, uint8_t _pinCTS, uint8_t _pinRTS)
@@ -62,12 +56,9 @@ Uart::Uart(NRF_UART_Type *_nrfUart, IRQn_Type _IRQn, uint8_t _pinRX, uint8_t _pi
   uc_pinCTS = g_ADigitalPinMap[_pinCTS];
   uc_pinRTS = g_ADigitalPinMap[_pinRTS];
   uc_hwFlow = 1;
-<<<<<<< HEAD
 
   _end_tx_sem = NULL;
   _begun = false;
-=======
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
 }
 
 void Uart::setPins(uint8_t _pinRX, uint8_t _pinTX)
@@ -86,21 +77,14 @@ void Uart::setPins(uint8_t _pinRX, uint8_t _pinTX, uint8_t _pinCTS, uint8_t _pin
 
 void Uart::begin(unsigned long baudrate)
 {
-<<<<<<< HEAD
   begin(baudrate, (uint16_t)SERIAL_8N1);
-=======
-  begin(baudrate, (uint8_t)SERIAL_8N1);
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
 }
 
 void Uart::begin(unsigned long baudrate, uint16_t /*config*/)
 {
-<<<<<<< HEAD
   // skip if already begun
   if ( _begun ) return;
 
-=======
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
   nrfUart->PSELTXD = uc_pinTX;
   nrfUart->PSELRXD = uc_pinRX;
 
@@ -112,15 +96,8 @@ void Uart::begin(unsigned long baudrate, uint16_t /*config*/)
     nrfUart->CONFIG = (UART_CONFIG_PARITY_Excluded << UART_CONFIG_PARITY_Pos) | UART_CONFIG_HWFC_Disabled;
   }
 
-<<<<<<< HEAD
   uint32_t nrfBaudRate;
 
-=======
-
-  uint32_t nrfBaudRate;
-
-#if defined(NRF52_SERIES)
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
   if (baudrate <= 1200) {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud1200;
   } else if (baudrate <= 2400) {
@@ -135,17 +112,12 @@ void Uart::begin(unsigned long baudrate, uint16_t /*config*/)
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud19200;
   } else if (baudrate <= 28800) {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud28800;
-<<<<<<< HEAD
   } else if (baudrate <= 31250) {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud31250;
   } else if (baudrate <= 38400) {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud38400;
   } else if (baudrate <= 56000) {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud56000;
-=======
-  } else if (baudrate <= 38400) {
-    nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud38400;
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
   } else if (baudrate <= 57600) {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud57600;
   } else if (baudrate <= 76800) {
@@ -163,45 +135,7 @@ void Uart::begin(unsigned long baudrate, uint16_t /*config*/)
   } else {
     nrfBaudRate = UARTE_BAUDRATE_BAUDRATE_Baud1M;
   }
-<<<<<<< HEAD
 
-=======
-#else
-  if (baudrate <= 1200) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud1200;
-  } else if (baudrate <= 2400) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud2400;
-  } else if (baudrate <= 4800) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud4800;
-  } else if (baudrate <= 9600) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud9600;
-  } else if (baudrate <= 14400) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud14400;
-  } else if (baudrate <= 19200) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud19200;
-  } else if (baudrate <= 28800) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud28800;
-  } else if (baudrate <= 38400) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud38400;
-  } else if (baudrate <= 57600) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud57600;
-  } else if (baudrate <= 76800) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud76800;
-  } else if (baudrate <= 115200) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud115200;
-  } else if (baudrate <= 230400) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud230400;
-  } else if (baudrate <= 250000) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud250000;
-  } else if (baudrate <= 460800) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud460800;
-  } else if (baudrate <= 921600) {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud921600;
-  } else {
-    nrfBaudRate = UART_BAUDRATE_BAUDRATE_Baud1M;
-  }
-#endif
->>>>>>> c039542f5c9230970ff9577b73f6b9273dcce3da
 
   nrfUart->BAUDRATE = nrfBaudRate;
 

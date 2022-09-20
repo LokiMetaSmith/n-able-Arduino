@@ -17,48 +17,29 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#if defined(NRF52) || defined(NRF52_SERIES)
+
+#include "nrf.h"
+
 #include "Arduino.h"
 #include "wiring_private.h"
-
-#if defined(NRF52_SERIES)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 static uint32_t saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
-static uint32_t saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_5;
+static uint32_t saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_6;
+static uint32_t saadcSampleTime = SAADC_CH_CONFIG_TACQ_3us;
 
-static NRF_PWM_Type* pwms[PWM_COUNT] = {
-  NRF_PWM0,
-  NRF_PWM1,
-  NRF_PWM2,
-#if PWM_COUNT > 3
-  NRF_PWM3
-#endif
-};
+static bool saadcBurst = SAADC_CH_CONFIG_BURST_Disabled;
 
-static uint32_t pwmChannelPins[PWM_COUNT] = {
-  0xFFFFFFFF,
-  0xFFFFFFFF,
-  0xFFFFFFFF,
-#if PWM_COUNT > 3
-  0xFFFFFFFF,
-#endif
-};
-static uint16_t pwmChannelSequence[PWM_COUNT];
+// Note: Adafruit use seperated HardwarePWM class
 
 static int readResolution = 10;
-static int writeResolution = 8;
-
 void analogReadResolution( int res )
 {
   readResolution = res;
-}
-
-void analogWriteResolution( int res )
-{
-  writeResolution = res;
 }
 
 static inline uint32_t mapResolution( uint32_t value, uint32_t from, uint32_t to )
@@ -79,77 +60,115 @@ static inline uint32_t mapResolution( uint32_t value, uint32_t from, uint32_t to
 }
 
 /*
- * Internal Reference is at 0.6v!
- * External Reference should be between 1v and VDDANA-0.6v=2.7v
+ * Internal Reference is +/-0.6V, with an adjustable gain of 1/6, 1/5, 1/4,
+ * 1/3, 1/2 or 1, meaning 3.6, 3.0, 2.4, 1.8, 1.2 or 0.6V for the ADC levels.
+ *
+ * External Reference is VDD/4, with an adjustable gain of 1, 2 or 4, meaning
+ * VDD/4, VDD/2 or VDD for the ADC levels.
+ *
+ * Default settings are internal reference with 1/6 gain (GND..3.6V ADC range)
  *
  * Warning : On Arduino Zero board the input/output voltage for SAMD21G18 is 3.3 volts maximum
  */
 void analogReference( eAnalogReference ulMode )
 {
   switch ( ulMode ) {
-    case AR_DEFAULT:
-    case AR_INTERNAL:
-    default:
-      saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
-      saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_5;
-      break;
-
     case AR_VDD4:
       saadcReference = SAADC_CH_CONFIG_REFSEL_VDD1_4;
       saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_4;
       break;
+    case AR_INTERNAL_3_0:
+      saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
+      saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_5;
+      break;
+    case AR_INTERNAL_2_4:
+      saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
+      saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_4;
+      break;
+    case AR_INTERNAL_1_8:
+      saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
+      saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_3;
+      break;
+    case AR_INTERNAL_1_2:
+      saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
+      saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_2;
+      break;
+    case AR_DEFAULT:
+    case AR_INTERNAL:
+    default:
+      saadcReference = SAADC_CH_CONFIG_REFSEL_Internal;
+      saadcGain      = SAADC_CH_CONFIG_GAIN_Gain1_6;
+      break;
+
   }
 }
 
-uint32_t analogRead( uint32_t ulPin )
+void analogOversampling( uint32_t ulOversampling )
 {
-  uint32_t pin = SAADC_CH_PSELP_PSELP_NC;
-  uint32_t saadcResolution;
-  uint32_t resolution;
-  int16_t value = 0;
+	saadcBurst = SAADC_CH_CONFIG_BURST_Enabled;
 
-  if (ulPin >= PINS_COUNT) {
-    return 0;
-  }
-
-  ulPin = g_ADigitalPinMap[ulPin];
-
-  switch ( ulPin ) {
-    case 2:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput0;
+	switch (ulOversampling) {
+		case 0:
+		case 1:
+			saadcBurst = SAADC_CH_CONFIG_BURST_Disabled;
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Bypass;
+			return;
       break;
-
-    case 3:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput1;
+		case 2:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over2x;
       break;
 
     case 4:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput2;
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over4x;
+			break;
+		case 8:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over8x;
+			break;
+		case 16:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over16x;
+			break;
+		case 32:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over32x;
       break;
+		case 64:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over64x;
+			break;
+		case 128:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over128x;
+			break;
+		case 256:
+			NRF_SAADC->OVERSAMPLE = SAADC_OVERSAMPLE_OVERSAMPLE_Over256x;
+			break;
+	}
+}
 
+void analogSampleTime( uint8_t sTime)
+{
+  saadcSampleTime = SAADC_CH_CONFIG_TACQ_3us; // default is 3 us
+  switch (sTime) {
     case 5:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput3;
+      saadcSampleTime = SAADC_CH_CONFIG_TACQ_5us;
       break;
-
-    case 28:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput4;
+    case 10:
+      saadcSampleTime = SAADC_CH_CONFIG_TACQ_10us;
       break;
-
-    case 29:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput5;
+    case 15:
+      saadcSampleTime = SAADC_CH_CONFIG_TACQ_15us;
       break;
-
-    case 30:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput6;
+    case 20:
+      saadcSampleTime = SAADC_CH_CONFIG_TACQ_20us;
       break;
-
-    case 31:
-      pin = SAADC_CH_PSELP_PSELP_AnalogInput7;
+    case 40:
+      saadcSampleTime = SAADC_CH_CONFIG_TACQ_40us;
       break;
-
-    default:
-      return 0;
   }
+}
+
+static uint32_t analogRead_internal( uint32_t psel )
+{
+  uint32_t saadcResolution;
+  uint32_t resolution;
+  volatile int16_t value = 0;
 
   if (readResolution <= 8) {
     resolution = 8;
@@ -176,10 +195,11 @@ uint32_t analogRead( uint32_t ulPin )
                             | ((SAADC_CH_CONFIG_RESP_Bypass   << SAADC_CH_CONFIG_RESN_Pos)   & SAADC_CH_CONFIG_RESN_Msk)
                             | ((saadcGain                     << SAADC_CH_CONFIG_GAIN_Pos)   & SAADC_CH_CONFIG_GAIN_Msk)
                             | ((saadcReference                << SAADC_CH_CONFIG_REFSEL_Pos) & SAADC_CH_CONFIG_REFSEL_Msk)
-                            | ((SAADC_CH_CONFIG_TACQ_3us      << SAADC_CH_CONFIG_TACQ_Pos)   & SAADC_CH_CONFIG_TACQ_Msk)
-                            | ((SAADC_CH_CONFIG_MODE_SE       << SAADC_CH_CONFIG_MODE_Pos)   & SAADC_CH_CONFIG_MODE_Msk);
-  NRF_SAADC->CH[0].PSELN = pin;
-  NRF_SAADC->CH[0].PSELP = pin;
+                            | ((saadcSampleTime               << SAADC_CH_CONFIG_TACQ_Pos)   & SAADC_CH_CONFIG_TACQ_Msk)
+                            | ((SAADC_CH_CONFIG_MODE_SE       << SAADC_CH_CONFIG_MODE_Pos)   & SAADC_CH_CONFIG_MODE_Msk)
+                            | ((saadcBurst                    << SAADC_CH_CONFIG_BURST_Pos)   & SAADC_CH_CONFIG_BURST_Msk);
+  NRF_SAADC->CH[0].PSELN = psel;
+  NRF_SAADC->CH[0].PSELP = psel;
 
 
   NRF_SAADC->RESULT.PTR = (uint32_t)&value;
@@ -209,44 +229,79 @@ uint32_t analogRead( uint32_t ulPin )
   return mapResolution(value, resolution, readResolution);
 }
 
-// Right now, PWM output only works on the pins with
-// hardware support.  These are defined in the appropriate
-// pins_*.c file.  For the rest of the pins, we default
-// to digital output.
-void analogWrite( uint32_t ulPin, uint32_t ulValue )
+
+uint32_t analogRead( uint32_t ulPin )
 {
+  uint32_t psel = SAADC_CH_PSELP_PSELP_NC;
+
   if (ulPin >= PINS_COUNT) {
-    return;
+    return 0;
   }
 
   ulPin = g_ADigitalPinMap[ulPin];
 
-  for (int i = 0; i < PWM_COUNT; i++) {
-    if (pwmChannelPins[i] == 0xFFFFFFFF || pwmChannelPins[i] == ulPin) {
-      pwmChannelPins[i] = ulPin;
-      pwmChannelSequence[i] = ulValue | bit(15);
-
-      NRF_PWM_Type* pwm = pwms[i];
-
-      pwm->PSEL.OUT[0] = ulPin;
-      pwm->PSEL.OUT[1] = ulPin;
-      pwm->PSEL.OUT[2] = ulPin;
-      pwm->PSEL.OUT[3] = ulPin;
-      pwm->ENABLE = (PWM_ENABLE_ENABLE_Enabled << PWM_ENABLE_ENABLE_Pos);
-      pwm->PRESCALER = PWM_PRESCALER_PRESCALER_DIV_1;
-      pwm->MODE = PWM_MODE_UPDOWN_Up;
-      pwm->COUNTERTOP = (1 << writeResolution) - 1;
-      pwm->LOOP = 0;
-      pwm->DECODER = ((uint32_t)PWM_DECODER_LOAD_Common << PWM_DECODER_LOAD_Pos) | ((uint32_t)PWM_DECODER_MODE_RefreshCount << PWM_DECODER_MODE_Pos);
-      pwm->SEQ[0].PTR = (uint32_t)&pwmChannelSequence[i];
-      pwm->SEQ[0].CNT = 1;
-      pwm->SEQ[0].REFRESH  = 1;
-      pwm->SEQ[0].ENDDELAY = 0;
-      pwm->TASKS_SEQSTART[0] = 0x1UL;
-
+  switch ( ulPin ) {
+    case 2:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput0;
       break;
+
+    case 3:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput1;
+      break;
+
+    case 4:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput2;
+      break;
+
+    case 5:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput3;
+      break;
+
+    case 28:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput4;
+      break;
+
+    case 29:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput5;
+      break;
+
+    case 30:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput6;
+      break;
+
+    case 31:
+      psel = SAADC_CH_PSELP_PSELP_AnalogInput7;
+      break;
+
+    default:
+      return 0;
     }
+
+  return analogRead_internal(psel);
+}
+
+uint32_t analogReadVDD( void )
+{
+  return analogRead_internal(SAADC_CH_PSELP_PSELP_VDD);
   }
+
+void analogCalibrateOffset( void )
+{
+  // Enable the SAADC
+  NRF_SAADC->ENABLE = 0x01;
+
+  // Be sure the done flag is cleared, then trigger offset calibration
+  NRF_SAADC->EVENTS_CALIBRATEDONE = 0x00;
+  NRF_SAADC->TASKS_CALIBRATEOFFSET = 0x01;
+
+  // Wait for completion
+  while (!NRF_SAADC->EVENTS_CALIBRATEDONE);
+
+  // Clear the done flag  (really shouldn't have to do this both times)
+  NRF_SAADC->EVENTS_CALIBRATEDONE = 0x00;
+
+  // Disable the SAADC
+  NRF_SAADC->ENABLE = 0x00;
 }
 
 #ifdef __cplusplus

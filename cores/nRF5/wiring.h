@@ -22,11 +22,33 @@
 extern "C" {
 #endif
 
+/* Bootloader version. Assigned by init().
+ * - value of 0x000500 is version 0.5.0
+ */
+extern uint32_t bootloaderVersion;
+
 extern void init(void);
+
+uint32_t readResetReason(void);
+
 void enterSerialDfu(void);
-void systemPowerOff(void);
-void systemRestart(void);
-uint32_t getResetReason(void);
+void enterOTADfu(void);
+void enterUf2Dfu(void);
+
+void waitForEvent(void);
+void systemOff(uint32_t pin, uint8_t wake_logic);
+
+// Test if in interrupt mode
+static inline bool isInISR(void)
+{
+  return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0 ;
+}
+
+/*
+ * \brief Reads the on-chip temperature sensor, returning the temperature in degrees C
+ * with a resolution of 0.25 degrees.
+*/
+float readCPUTemperature( void );
 
 #ifdef __cplusplus
 }

@@ -22,6 +22,9 @@
 /** Master clock frequency */
 #define VARIANT_MCK       (64000000ul)
 
+//#define USE_LFXO      // Board uses 32khz crystal for LF
+#define USE_LFRC    // Board uses RC for LF
+
 /*----------------------------------------------------------------------------
  *        Headers
  *----------------------------------------------------------------------------*/
@@ -94,7 +97,6 @@ static const uint8_t A9  = PIN_A9 ;
  */
 #define PIN_SERIAL1_RX       (0)
 #define PIN_SERIAL1_TX       (1)
-#define USB_CDC_DEFAULT_SERIAL 1
 
 /*
  * SPI Interfaces

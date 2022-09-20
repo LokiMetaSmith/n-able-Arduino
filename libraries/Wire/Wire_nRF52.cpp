@@ -18,8 +18,6 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "nrf.h"
-
 #if defined(NRF52) || defined(NRF52_SERIES)
 
 extern "C" {
@@ -31,13 +29,21 @@ extern "C" {
 
 #include "Wire.h"
 
+#include <Adafruit_TinyUSB.h> // for Serial
+
+static volatile uint32_t* pincfg_reg(uint32_t pin)
+{
+  NRF_GPIO_Type * port = nrf_gpio_pin_port_decode(&pin);
+  return &port->PIN_CNF[pin];
+}
+
 TwoWire::TwoWire(NRF_TWIM_Type * p_twim, NRF_TWIS_Type * p_twis, IRQn_Type IRQn, uint8_t pinSDA, uint8_t pinSCL)
 {
   this->_p_twim = p_twim;
   this->_p_twis = p_twis;
   this->_IRQn = IRQn;
-  this->_uc_pinSDA = pinSDA;
-  this->_uc_pinSCL = pinSCL;
+  this->_uc_pinSDA = g_ADigitalPinMap[pinSDA];
+  this->_uc_pinSCL = g_ADigitalPinMap[pinSCL];
   transmissionBegun = false;
 }
 
@@ -45,18 +51,13 @@ void TwoWire::begin(void) {
   //Main Mode
   master = true;
 
-  NRF_GPIO_Type* portSCL = digitalPinToPort(_uc_pinSCL);
-  NRF_GPIO_Type* portSDA = digitalPinToPort(_uc_pinSDA);
-  uint32_t pinSCL = digitalPinToPin(_uc_pinSCL);
-  uint32_t pinSDA = digitalPinToPin(_uc_pinSDA);
-
-  portSCL->PIN_CNF[pinSCL] = ((uint32_t)GPIO_PIN_CNF_DIR_Input       << GPIO_PIN_CNF_DIR_Pos)
+  *pincfg_reg(_uc_pinSCL) = ((uint32_t)GPIO_PIN_CNF_DIR_Input         << GPIO_PIN_CNF_DIR_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_INPUT_Connect  << GPIO_PIN_CNF_INPUT_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_PULL_Pullup    << GPIO_PIN_CNF_PULL_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_DRIVE_S0D1     << GPIO_PIN_CNF_DRIVE_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
 
-  portSDA->PIN_CNF[pinSDA] = ((uint32_t)GPIO_PIN_CNF_DIR_Input       << GPIO_PIN_CNF_DIR_Pos)
+  *pincfg_reg(_uc_pinSDA) = ((uint32_t)GPIO_PIN_CNF_DIR_Input         << GPIO_PIN_CNF_DIR_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_INPUT_Connect  << GPIO_PIN_CNF_INPUT_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_PULL_Pullup    << GPIO_PIN_CNF_PULL_Pos)
                             | ((uint32_t)GPIO_PIN_CNF_DRIVE_S0D1     << GPIO_PIN_CNF_DRIVE_Pos)
@@ -64,11 +65,11 @@ void TwoWire::begin(void) {
 
   _p_twim->FREQUENCY = TWIM_FREQUENCY_FREQUENCY_K100;
   _p_twim->ENABLE = (TWIM_ENABLE_ENABLE_Enabled << TWIM_ENABLE_ENABLE_Pos);
-  _p_twim->PSEL.SCL = g_ADigitalPinMap[_uc_pinSCL];
-  _p_twim->PSEL.SDA = g_ADigitalPinMap[_uc_pinSDA];
+  _p_twim->PSEL.SCL = _uc_pinSCL;
+  _p_twim->PSEL.SDA = _uc_pinSDA;
 
   NVIC_ClearPendingIRQ(_IRQn);
-  NVIC_SetPriority(_IRQn, 2);
+  NVIC_SetPriority(_IRQn, 3);
   NVIC_EnableIRQ(_IRQn);
 }
 
@@ -76,13 +77,13 @@ void TwoWire::begin(uint8_t address) {
   //Secondary mode
   master = false;
 
-  NRF_GPIO->PIN_CNF[_uc_pinSCL] = ((uint32_t)GPIO_PIN_CNF_DIR_Input        << GPIO_PIN_CNF_DIR_Pos)
+  *pincfg_reg(_uc_pinSCL) = ((uint32_t)GPIO_PIN_CNF_DIR_Input        << GPIO_PIN_CNF_DIR_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_PULL_Disabled    << GPIO_PIN_CNF_PULL_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_DRIVE_S0S1       << GPIO_PIN_CNF_DRIVE_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_SENSE_Disabled   << GPIO_PIN_CNF_SENSE_Pos);
 
-  NRF_GPIO->PIN_CNF[_uc_pinSDA] = ((uint32_t)GPIO_PIN_CNF_DIR_Input        << GPIO_PIN_CNF_DIR_Pos)
+  *pincfg_reg(_uc_pinSDA) = ((uint32_t)GPIO_PIN_CNF_DIR_Input        << GPIO_PIN_CNF_DIR_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_PULL_Disabled    << GPIO_PIN_CNF_PULL_Pos)
                                 | ((uint32_t)GPIO_PIN_CNF_DRIVE_S0S1       << GPIO_PIN_CNF_DRIVE_Pos)
@@ -90,15 +91,15 @@ void TwoWire::begin(uint8_t address) {
 
   _p_twis->ADDRESS[0] = address;
   _p_twis->CONFIG = TWIS_CONFIG_ADDRESS0_Msk;
-  _p_twis->PSEL.SCL = g_ADigitalPinMap[_uc_pinSCL];
-  _p_twis->PSEL.SDA = g_ADigitalPinMap[_uc_pinSDA];
+  _p_twis->PSEL.SCL = _uc_pinSCL;
+  _p_twis->PSEL.SDA = _uc_pinSDA;
 
   _p_twis->ORC = 0xff;
 
   _p_twis->INTENSET = TWIS_INTEN_STOPPED_Msk | TWIS_INTEN_ERROR_Msk | TWIS_INTEN_WRITE_Msk | TWIS_INTEN_READ_Msk;
 
   NVIC_ClearPendingIRQ(_IRQn);
-  NVIC_SetPriority(_IRQn, 2);
+  NVIC_SetPriority(_IRQn, 3);
   NVIC_EnableIRQ(_IRQn);
 
   _p_twis->ENABLE = (TWIS_ENABLE_ENABLE_Enabled << TWIS_ENABLE_ENABLE_Pos);
@@ -401,29 +402,44 @@ void TwoWire::onService(void)
   }
 }
 
-TwoWire Wire(NRF_TWIM1, NRF_TWIS1, SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQn, PIN_WIRE_SDA, PIN_WIRE_SCL);
-
 #if WIRE_INTERFACES_COUNT > 0
-extern "C"
-{
-  void SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler(void)
-  {
-    Wire.onService();
-  }
-}
-#endif
-
-#if WIRE_INTERFACES_COUNT > 1
-
-TwoWire Wire1(NRF_TWIM0, NRF_TWIS0, SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQn, PIN_WIRE1_SDA, PIN_WIRE1_SCL);
+TwoWire Wire(NRF_TWIM0, NRF_TWIS0, SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQn, PIN_WIRE_SDA, PIN_WIRE_SCL);
 
 extern "C"
 {
   void SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler(void)
   {
-    Wire1.onService();
+    #if CFG_SYSVIEW
+    SEGGER_SYSVIEW_RecordEnterISR();
+    #endif
+
+    Wire.onService();
+
+    #if CFG_SYSVIEW
+    SEGGER_SYSVIEW_RecordExitISR();
+    #endif
   }
 }
 #endif
 
+#if WIRE_INTERFACES_COUNT > 1
+TwoWire Wire1(NRF_TWIM1, NRF_TWIS1, SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQn, PIN_WIRE1_SDA, PIN_WIRE1_SCL);
+
+extern "C"
+{
+  void SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler(void)
+  {
+    #if CFG_SYSVIEW
+    SEGGER_SYSVIEW_RecordEnterISR();
+    #endif
+
+    Wire1.onService();
+
+    #if CFG_SYSVIEW
+    SEGGER_SYSVIEW_RecordExitISR();
+    #endif
+  }
+}
 #endif
+
+#endif // NRF52_SERIES

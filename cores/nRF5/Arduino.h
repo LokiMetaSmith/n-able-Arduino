@@ -11,7 +11,6 @@
 #include "nrf_power.h"
 #include "nrf_peripherals.h"
 #include "freertos/FreeRTOS.h"
-
 typedef bool boolean;
 typedef uint8_t byte;
 typedef uint16_t word;
@@ -48,7 +47,11 @@ void resumeLoop(void);
 #ifdef __cplusplus
 } // extern "C"
 #endif
-
+// RTOS
+#ifdef __cplusplus
+#include "Uart.h"
+#include "rtos.h"
+#endif // __cplusplus
 // The following headers are for C++ only compilation
 #ifdef __cplusplus
   #include "WCharacter.h"
@@ -165,10 +168,5 @@ void resumeLoop(void);
 
 // Interrupts
 #define digitalPinToInterrupt(P)   ( P )
-// RTOS
-#ifdef __cplusplus
-#include "Uart.h"
-#include "rtos.h"
-#endif // __cplusplus
 
 #endif // Arduino_h

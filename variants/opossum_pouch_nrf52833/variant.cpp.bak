@@ -49,16 +49,16 @@ void initVariant()
   pinMode(PIN_LED3, OUTPUT);
   ledOff(PIN_LED3);
 
-  pinMode(PIN_LED4, OUTPUT);
-  ledOff(PIN_LED4);
+//  pinMode(PIN_LED4, OUTPUT);
+//  ledOff(PIN_LED4);
 
   // init all 4 onboard buttons
   pinMode(PIN_BUTTON1, INPUT_PULLUP);
 
   pinMode(PIN_BUTTON2, INPUT_PULLUP);
 
-  pinMode(PIN_BUTTON3, INPUT_PULLUP);
+//  pinMode(PIN_BUTTON3, INPUT_PULLUP);
 
-  pinMode(PIN_BUTTON4, INPUT_PULLUP);
+//  pinMode(PIN_BUTTON4, INPUT_PULLUP);
 }
 

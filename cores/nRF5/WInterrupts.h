@@ -31,7 +31,9 @@ extern "C" {
 #define FALLING 3
 #define RISING 4
 
-#define DEFAULT 1
+#define ISR_DEFERRED  0x0100
+
+//#define DEFAULT 1
 #define EXTERNAL 0
 
 typedef void (*voidFuncPtr)(void);
@@ -39,8 +41,10 @@ typedef void (*voidFuncPtr)(void);
 /*
  * \brief Specifies a named Interrupt Service Routine (ISR) to call when an interrupt occurs.
  *        Replaces any previous function that was attached to the interrupt.
+ *
+ * \return Interrupt Mask
  */
-void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode);
+int attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode);
 
 /*
  * \brief Turns off the given interrupt.
