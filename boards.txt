@@ -1107,9 +1107,10 @@ op2.upload.maximum_size=507904
 # Build
 op2.build.mcu=cortex-m4
 op2.build.f_cpu=64000000
-op2.build.board=op2
+op2.build.board=NRF52833_op2
 op2.build.core=nRF5
-op2.build.variant=op2
+#build.variant folder name
+op2.build.variant=NRF52833_op2
 op2.build.variant_system_lib=
 op2.build.float_flags=-mfloat-abi=hard -mfpu=fpv4-sp-d16
 op2.build.ldscript=nrf52833_xxaa.ld

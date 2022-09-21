@@ -21,6 +21,7 @@
 
 /** Master clock frequency */
 #define VARIANT_MCK       (64000000ul)
+#define USE_LFRC    // Board uses RC for LF
 
 /*----------------------------------------------------------------------------
  *        Headers
