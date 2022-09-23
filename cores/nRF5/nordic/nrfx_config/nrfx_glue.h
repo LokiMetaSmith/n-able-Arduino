@@ -1,6 +1,8 @@
 /*
- * Copyright (c) 2017 - 2018, Nordic Semiconductor ASA
+ * Copyright (c) 2017 - 2022, Nordic Semiconductor ASA
  * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -54,7 +56,7 @@ extern "C" {
 /**
  * @brief Macro for placing a runtime assertion.
  *
- * @param expression  Expression to evaluate.
+ * @param expression Expression to evaluate.
  */
 #define NRFX_ASSERT(expression)
 
@@ -179,6 +181,108 @@ static inline bool _NRFX_IRQ_IS_PENDING(IRQn_Type irq_number)
  */
 #include <soc/nrfx_coredep.h>
 #define NRFX_DELAY_US(us_time)    nrfx_coredep_delay_us(us_time)
+//------------------------------------------------------------------------------
+
+/** @brief Atomic 32-bit unsigned type. */
+#define nrfx_atomic_t
+
+/**
+ * @brief Macro for storing a value to an atomic object and returning its previous value.
+ *
+ * @param[in] p_data Atomic memory pointer.
+ * @param[in] value  Value to store.
+ *
+ * @return Previous value of the atomic object.
+ */
+#define NRFX_ATOMIC_FETCH_STORE(p_data, value)
+
+/**
+ * @brief Macro for running a bitwise OR operation on an atomic object and returning its previous value.
+ *
+ * @param[in] p_data Atomic memory pointer.
+ * @param[in] value  Value of the second operand in the OR operation.
+ *
+ * @return Previous value of the atomic object.
+ */
+#define NRFX_ATOMIC_FETCH_OR(p_data, value)
+
+/**
+ * @brief Macro for running a bitwise AND operation on an atomic object
+ *        and returning its previous value.
+ *
+ * @param[in] p_data Atomic memory pointer.
+ * @param[in] value  Value of the second operand in the AND operation.
+ *
+ * @return Previous value of the atomic object.
+ */
+#define NRFX_ATOMIC_FETCH_AND(p_data, value)
+
+/**
+ * @brief Macro for running a bitwise XOR operation on an atomic object
+ *        and returning its previous value.
+ *
+ * @param[in] p_data Atomic memory pointer.
+ * @param[in] value  Value of the second operand in the XOR operation.
+ *
+ * @return Previous value of the atomic object.
+ */
+#define NRFX_ATOMIC_FETCH_XOR(p_data, value)
+
+/**
+ * @brief Macro for running an addition operation on an atomic object
+ *        and returning its previous value.
+ *
+ * @param[in] p_data Atomic memory pointer.
+ * @param[in] value  Value of the second operand in the ADD operation.
+ *
+ * @return Previous value of the atomic object.
+ */
+#define NRFX_ATOMIC_FETCH_ADD(p_data, value)
+
+/**
+ * @brief Macro for running a subtraction operation on an atomic object
+ *        and returning its previous value.
+ *
+ * @param[in] p_data Atomic memory pointer.
+ * @param[in] value  Value of the second operand in the SUB operation.
+ *
+ * @return Previous value of the atomic object.
+ */
+#define NRFX_ATOMIC_FETCH_SUB(p_data, value)
+
+/**
+ * @brief Macro for running compare and swap on an atomic object.
+ *
+ * Value is updated to the new value only if it previously equaled old value.
+ *
+ * @param[in,out] p_data    Atomic memory pointer.
+ * @param[in]     old_value Expected old value.
+ * @param[in]     new_value New value.
+ *
+ * @retval true  If value was updated.
+ * @retval false If value was not updated because location was not equal to @p old_value.
+ */
+#define NRFX_ATOMIC_CAS(p_data, old_value, new_value)
+
+/**
+ * @brief Macro for counting leading zeros.
+ *
+ * @param[in] value A word value.
+ *
+ * @return Number of leading 0-bits in @p value, starting at the most significant bit position.
+ *         If x is 0, the result is undefined.
+ */
+#define NRFX_CLZ(value)
+
+/**
+ * @brief Macro for counting trailing zeros.
+ *
+ * @param[in] value A word value.
+ *
+ * @return Number of trailing 0-bits in @p value, starting at the least significant bit position.
+ *         If x is 0, the result is undefined.
+ */
+#define NRFX_CTZ(value)
 
 //------------------------------------------------------------------------------
 
@@ -193,23 +297,33 @@ static inline bool _NRFX_IRQ_IS_PENDING(IRQn_Type irq_number)
 //------------------------------------------------------------------------------
 
 /**
- * @brief Bitmask defining PPI channels reserved to be used outside of nrfx.
+ * @brief When set to a non-zero value, this macro specifies that inside HALs
+ *        the event registers are read back after clearing, on devices that
+ *        otherwise could defer the actual register modification.
  */
+#define NRFX_EVENT_READBACK_ENABLED 1
+
+//------------------------------------------------------------------------------
+
+/** @brief Bitmask that defines DPPI channels that are reserved for use outside of the nrfx library. */
+#define NRFX_DPPI_CHANNELS_USED   0
+
+/** @brief Bitmask that defines DPPI groups that are reserved for use outside of the nrfx library. */
+#define NRFX_DPPI_GROUPS_USED     0
+
+/** @brief Bitmask that defines PPI channels that are reserved for use outside of the nrfx library. */
 #define NRFX_PPI_CHANNELS_USED  0
 
-/**
- * @brief Bitmask defining PPI groups reserved to be used outside of nrfx.
- */
+/** @brief Bitmask that defines PPI groups that are reserved for use outside of the nrfx library. */
 #define NRFX_PPI_GROUPS_USED    0
 
-/**
- * @brief Bitmask defining SWI instances reserved to be used outside of nrfx.
- */
-#define NRFX_SWI_USED           0
+/** @brief Bitmask that defines GPIOTE channels that are reserved for use outside of the nrfx library. */
+#define NRFX_GPIOTE_CHANNELS_USED 0
 
-/**
- * @brief Bitmask defining TIMER instances reserved to be used outside of nrfx.
- */
+/** @brief Bitmask that defines EGU instances that are reserved for use outside of the nrfx library. */
+#define NRFX_EGUS_USED            0
+
+/** @brief Bitmask that defines TIMER instances that are reserved for use outside of the nrfx library. */
 #define NRFX_TIMERS_USED        0
 
 /** @} */

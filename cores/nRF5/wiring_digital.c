@@ -221,7 +221,7 @@ void digitalToggle( uint32_t pin )
   int state = 1 - digitalRead(pin);
   digitalWrite(pin, state);
 }
-
+#ifdef LED_STATE_ON
 void ledOn(uint32_t pin)
 {
   digitalWrite(pin, LED_STATE_ON);
@@ -231,7 +231,7 @@ void ledOff(uint32_t pin)
 {
   digitalWrite(pin, 1-LED_STATE_ON);
 }
-
+#endif
 
 #ifdef __cplusplus
 }

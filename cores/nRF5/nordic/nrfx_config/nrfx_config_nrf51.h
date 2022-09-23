@@ -1,6 +1,8 @@
 /*
- * Copyright (c) 2017 - 2020, Nordic Semiconductor ASA
+ * Copyright (c) 2017 - 2022, Nordic Semiconductor ASA
  * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,19 +34,8 @@
 #ifndef NRFX_CONFIG_NRF51_H__
 #define NRFX_CONFIG_NRF51_H__
 
-#define NRFX_NVMC_ENABLED 1
-#define NRFX_CLOCK_ENABLED 1
-
-// <0=> RC
-// <1=> XTAL
-// <2=> Synth
-#if defined(USE_LFRC)
-#define NRFX_CLOCK_CONFIG_LF_SRC 0
-#define NRFX_CLOCK_CONFIG_LF_CAL_ENABLED 1
-#elif defined(USE_LFXO)
-#define NRFX_CLOCK_CONFIG_LF_SRC 1
-#elif defined(USE_LFSYNT)
-#define NRFX_CLOCK_CONFIG_LF_SRC 2
+#ifndef NRFX_CONFIG_H__
+#error "This file should not be included directly. Include nrfx_config.h instead."
 #endif
 
 
@@ -142,6 +133,23 @@
 #define NRFX_CLOCK_CONFIG_LF_CAL_ENABLED 0
 #endif
 
+// <q> NRFX_CLOCK_CONFIG_CT_ENABLED  - Enables Calibration Timer Support
+
+#ifndef NRFX_CLOCK_CONFIG_CT_ENABLED
+#define NRFX_CLOCK_CONFIG_CT_ENABLED 1
+#endif
+
+// <q> NRFX_CLOCK_CONFIG_LFXO_TWO_STAGE_ENABLED - Enables two-stage LFXO start procedure
+
+// <i> If set to a non-zero value, LFRC will be started before LFXO and corresponding
+// <i> event will be generated. It means that CPU will be woken up when LFRC
+// <i> oscillator starts, but user callback will be invoked only after LFXO
+// <i> finally starts.
+
+#ifndef NRFX_CLOCK_CONFIG_LFXO_TWO_STAGE_ENABLED
+#define NRFX_CLOCK_CONFIG_LFXO_TWO_STAGE_ENABLED 0
+#endif
+
 // <o> NRFX_CLOCK_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
 
 // <0=> 0 (highest)
@@ -211,9 +219,9 @@
 #ifndef NRFX_GPIOTE_ENABLED
 #define NRFX_GPIOTE_ENABLED 0
 #endif
-// <o> NRFX_GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS - Number of lower power input pins
-#ifndef NRFX_GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS
-#define NRFX_GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS 1
+// <o> NRFX_GPIOTE_CONFIG_NUM_OF_EVT_HANDLERS - Number of dedicated handlers
+#ifndef NRFX_GPIOTE_CONFIG_NUM_OF_EVT_HANDLERS
+#define NRFX_GPIOTE_CONFIG_NUM_OF_EVT_HANDLERS 2
 #endif
 
 // <o> NRFX_GPIOTE_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority

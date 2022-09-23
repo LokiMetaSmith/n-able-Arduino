@@ -26,6 +26,13 @@ extern "C" {
 #include <stdint.h>
 #include "nrfx.h"
 #include "variant.h"
+#include "rtos.h"
+
+static inline bool dwt_enabled(void) __attribute__((always_inline));
+static inline bool dwt_enabled(void)
+{
+  return (CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk) && (DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk);
+}
 
 /**
  * \brief Returns the number of milliseconds since the Arduino board began running the current program.
@@ -46,7 +53,15 @@ extern uint32_t millis( void ) ;
  *
  * \note There are 1,000 microseconds in a millisecond and 1,000,000 microseconds in a second.
  */
-extern uint32_t micros( void ) ;
+extern uint32_t micros( void );
+/*
+static inline uint32_t micros( void ) __attribute__((always_inline));
+static inline uint32_t micros( void )
+{
+  // Use DWT cycle count if it is enabled, otherwise use rtos tick
+  return dwt_enabled() ? (DWT->CYCCNT / 64) : tick2us(xTaskGetTickCount());
+}
+*/
 
 /**
  * \brief Pauses the program for the amount of time (in miliseconds) specified as parameter.
@@ -66,6 +81,37 @@ static __inline__ void delayMicroseconds( uint32_t usec )
 {
     nrfx_coredep_delay_us(usec);
 }
+
+/**
+ * Enable DWT, required for delay_ns()
+ */
+void dwt_enable(void);
+void dwt_disable(void);
+
+
+/**
+ * Delay nano seconds, delay_ns() make use of DWT of debug core.
+ * dwt_enable() must be called previously.
+ * Note: nrf52 run at 64MHz
+ *    - 1000 ns ~ 64 cycles
+ *    -  500 ns ~ 32 cycles
+ *    -  250 ns ~ 16 cycles
+ *    -  125 ns ~  8 cycles
+ */
+// Enable pragma when this bug is fixed  https://bugs.launchpad.net/gcc-arm-embedded/+bug/1534360
+// #pragma GCC push_options
+// #pragma GCC optimize ("Ofast")
+
+#define DELAY_CYCLE_CORRECTION   8 // ~125 ns overhead for delay_ns()
+#define delay_ns(ns) \
+  do {\
+    register uint32_t _endtime = DWT->CYCCNT;\
+    _endtime += ((F_CPU/1000000)*ns)/1000 - DELAY_CYCLE_CORRECTION;\
+    while (DWT->CYCCNT < _endtime) {}\
+  } while(0)
+
+// #pragma GCC pop_options
+
 
 #ifdef __cplusplus
 }
