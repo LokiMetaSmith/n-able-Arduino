@@ -37,7 +37,7 @@ void yield(void)
 
 uint32_t millis( void )
 {
-  return xTaskGetTickCount() * 1000 / configTICK_RATE_HZ;
+  return tick2ms(xTaskGetTickCount());
 }
 
 uint32_t micros( void )
@@ -47,7 +47,7 @@ uint32_t micros( void )
 
 void delay( uint32_t ms )
 {
-  uint32_t ticks = ms * configTICK_RATE_HZ / 1000;
+  uint32_t ticks = ms2tick(ms);
 
 #ifdef USE_TINYUSB
   // Take chance to flush usb cdc
