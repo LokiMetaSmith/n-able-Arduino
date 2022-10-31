@@ -27,6 +27,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "common_func.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
