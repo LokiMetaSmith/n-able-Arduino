@@ -66,7 +66,8 @@ void resumeLoop(void);
 #endif
 
 #ifdef USE_TINYUSB
-  #include "Adafruit_TinyUSB_Core.h"
+// Needed for declaring Serial
+#include "Adafruit_USBD_CDC.h"
 #endif
 
   #include "delay.h"

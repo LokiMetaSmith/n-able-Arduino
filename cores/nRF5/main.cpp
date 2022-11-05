@@ -34,6 +34,23 @@
 #  define MAIN_TASK_STACK_SIZE 512
 #endif
 
+#if CFG_SYSVIEW
+  // Select Menu -> Debug -> Segger SystemView
+  #include "SEGGER_RTT.h"
+  #include "SEGGER_SYSVIEW.h"
+
+#elif CFG_LOGGER == 2
+  // Select Menu -> Debug Output -> Segger RTT
+  #include "SEGGER_RTT.h"
+#endif
+ 
+// DEBUG Level 1
+#if CFG_DEBUG
+// weak function to avoid compilation error with
+// non-Bluefruit library sketch such as ADC read test
+void Bluefruit_printInfo() __attribute__((weak));
+void Bluefruit_printInfo() {}
+#endif
 // Weak empty variant initialization function.
 // May be redefined by variant files.
 void initVariant() __attribute__((weak));
@@ -43,12 +60,12 @@ static TaskHandle_t _loopTaskHandle = NULL;
 static StackType_t _mainStack[ MAIN_TASK_STACK_SIZE ];
 static StaticTask_t _mainTaskBuffer;
 
-void loopTask(void *pvParameters)
+static void loop_task(void* arg)
 {
   (void) pvParameters;
 
   #ifdef USE_TINYUSB
-  Adafruit_TinyUSB_Core_init();
+  TinyUSB_Device_Init(0);
   #endif
 
 #if CFG_DEBUG
@@ -82,13 +99,17 @@ int main( void )
 
   initVariant();
 
+#if CFG_SYSVIEW
+  SEGGER_SYSVIEW_Conf();
+#endif
 
 
-  _loopTaskHandle = xTaskCreateStatic(loopTask, "mlt", MAIN_TASK_STACK_SIZE,
+  _loopTaskHandle = xTaskCreateStatic(loop_task, "mlt", MAIN_TASK_STACK_SIZE,
                                       NULL, 1, _mainStack, &_mainTaskBuffer);
 
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
+  // Start FreeRTOS scheduler.
   vTaskStartScheduler();
 
   NVIC_SystemReset();
