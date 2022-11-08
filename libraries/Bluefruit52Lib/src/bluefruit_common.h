@@ -37,7 +37,8 @@
 #define BLUEFRUIT_COMMON_H_
 
 #include <Arduino.h>
-#include "nimble\nimble\include\nimble\ble.h"
+//#include "ble.h"
+#include <nimble\nimble\include\nimble\ble.h>
 
 #ifdef SOFTDEVICE_PRESENT
 #include "nrf_sdm.h"
