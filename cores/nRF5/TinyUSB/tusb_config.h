@@ -41,6 +41,7 @@
 #endif
 
 #define CFG_TUSB_OS                 OPT_OS_FREERTOS
+#define CFG_TUSB_OS_INC_PATH        freertos/
 #define CFG_TUSB_MEM_SECTION
 #define CFG_TUSB_MEM_ALIGN          __attribute__ ((aligned(4)))
 
